@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Searches for bills in the legislature using the govtrack.us API at https://www.govtrack.us/developers/api.
+# Usage: bill_search [search_term, search_term]
+# If no search terms are listed, the script will fetch the most recent bills.
+# Output: bill name, congressional session, introduced, bill title
+
+BILL_URL_BASE=https://www.govtrack.us/api/v2/bill?sort=-introduced_date
+
+# TODO: Refactor jq into a variable
+
+if [[ "$#" -eq 0 ]];
+  then
+  # query most recent bills
+  curl -GLs "$BILL_URL_BASE" | jq -r '.objects | .[] | [.id, .thomas_link, .bill_type_label + " " + (.number|tostring), .congress, .introduced_date, .title_without_number]|@csv'
+else
+  curl -GLs $BILL_URL_BASE --data-urlencode "q=$@" | jq -r '.objects | .[] | [.id, .thomas_link, .bill_type_label + " " + (.number|tostring), .congress, .introduced_date, .title_without_number]|@csv'
+
+fi
